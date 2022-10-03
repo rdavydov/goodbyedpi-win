@@ -1,16 +1,17 @@
-@echo off 
+@echo off
 pushd "%~dp0"
 set blacklist_url="https://antizapret.prostovpn.org/domains-export.txt"
 set blacklist=%cd%\russia-blacklist.txt
+:: set log=%cd%\blacklist_update.log
 :: set log=%temp%\blacklist_update.log
+set log=nul
 set mydate=%date:~4,2%/%date:~7,2%/%date:~10,4%
 set mytime=%time: =0%
-set log=nul
 schtasks /Query /TN "GoodbyeDPI blacklist update" > nul
-if ERRORLEVEL 1 schtasks /Create /TN "GoodbyeDPI blacklist update" /RU Administrators /TR "%~fs0" /SC HOURLY /ST %mytime:~,-3% /SD %mydate%
+if ERRORLEVEL 1 schtasks /Create /TN "GoodbyeDPI blacklist update" /RU Administrators /TR "%cd%\blacklist_update_task.vbs" /SC HOURLY /ST %mytime:~,-3% /SD %mydate%
 :download
 :: bitsadmin /transfer blacklist %blacklist_url% "%temp%\goodbyedpi-blacklist.txt.new"
-wget %blacklist_url% -O "%temp%\goodbyedpi-blacklist.txt.new"
+wget -q %blacklist_url% -O "%temp%\goodbyedpi-blacklist.txt.new"
 for %%i in (%temp%\goodbyedpi-blacklist.txt.new) do (set /a size=%%~Zi)
 if %size% == 0 (
 	del /F /Q %temp%\goodbyedpi-blacklist.txt.new
